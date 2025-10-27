@@ -16,10 +16,10 @@ crate-type = ["lib"]  # could also include "cdylib", "rlib", etc.
 [dependencies]
 tonic = "*"
 prost = "0.14"
-tonic-prost = "*"
+tonic-prost = "0.14.2"
 prost-types = "0.14.1"
 serde_json = "1.0.145"
 serde = { version = "1.0.228", features = ["derive"] }
 
 [build-dependencies]
-tonic-prost-build = "*"
+tonic-prost-build = "0.14.2"
