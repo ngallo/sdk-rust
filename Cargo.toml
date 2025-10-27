@@ -14,7 +14,7 @@ name = "permguard"
 crate-type = ["lib"]  # could also include "cdylib", "rlib", etc.
 
 [dependencies]
-tonic = "*"
+tonic = "0.14.2"
 prost = "0.14"
 tonic-prost = "0.14.2"
 prost-types = "0.14.1"
