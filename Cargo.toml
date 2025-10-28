@@ -1,6 +1,6 @@
 [package]
 name = "permguard-sdk"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2024"
 keywords = ["permguard", "auth"]
 categories = ["development-tools"]
