@@ -1,22 +1,20 @@
-mod config;
-mod az_client;
-mod az_req;
-mod mapper;
-
 use std::collections::HashMap;
 use std::error::Error;
 use std::path::PathBuf;
-use crate::az_client::AzClient;
-use crate::az_req::action_builder::ActionBuilder;
-use crate::az_req::az_request_builder::AzRequestBuilder;
-use crate::az_req::context_builder::ContextBuilder;
-use crate::az_req::evaluation_builder::EvaluationBuilder;
-use crate::az_req::model::AzRequest;
-use crate::az_req::principal_builder::PrincipalBuilder;
-use crate::az_req::resource_builder::ResourceBuilder;
-use crate::az_req::subject_builder::SubjectBuilder;
-use crate::config::{AzConfig, AzEndpoint};
-use tokio::fs;
+use permguard::az_client::*;
+use permguard::az_req::action_builder::ActionBuilder;
+use permguard::az_req::az_atomic_request_builder::AzAtomicRequestBuilder;
+use permguard::az_req::az_request_builder::AzRequestBuilder;
+use permguard::az_req::context_builder::ContextBuilder;
+use permguard::az_req::evaluation_builder::EvaluationBuilder;
+use permguard::az_req::model::AzRequest;
+use permguard::az_req::principal_builder::PrincipalBuilder;
+use permguard::az_req::resource_builder::ResourceBuilder;
+use permguard::az_req::subject_builder::SubjectBuilder;
+use permguard::config::*;
+use serde_json::{json, Value};
+use tokio::{fs};
+
 
 #[tokio::main]
 async fn main()  -> Result<(), Box<dyn std::error::Error>> {
@@ -25,20 +23,102 @@ async fn main()  -> Result<(), Box<dyn std::error::Error>> {
         Ok(value) => value,
         Err(value) => return value,
     }*/
-    match test_json().await {
+    match atomic_test().await {
         Ok(value) => value,
         Err(value) => return value,
     }
 }
 
+async fn atomic_test() -> Result<Result<(), Box<dyn Error>>, Result<(), Box<dyn Error>>>{
+    let endpoint = AzEndpoint::new("http".to_string(), 9094, "localhost".to_string());
+    let config = AzConfig::new().with_endpoint(Some(endpoint));
+    let client = AzClient::new(config);
 
-async fn test_json() -> Result<Result<(), Box<dyn Error>>, Result<(), Box<dyn Error>>>{
+    let principal = PrincipalBuilder::new("amy.smith@acmecorp.com")
+        .with_source("keycloak")
+        .with_kind("user")
+        .build();
+
+    let entity = {
+        let mut map = HashMap::new();
+        map.insert("uid".to_string(), json!({
+            "type": "MagicFarmacia::Platform::BranchInfo",
+            "id": "subscription"
+        }));
+        map.insert("attrs".to_string(), json!({"active": true}));
+        map.insert("parents".to_string(), json!([]));
+        Some(map)
+    };
+
+    let entities = vec![entity];
+
+    let request = AzAtomicRequestBuilder::new(
+        189106194833,
+        "48335ae72b3b405eae9e4bd5b07732df",
+        "platform-creator",
+        "MagicFarmacia::Platform::Subscription",
+        "MagicFarmacia::Platform::Action::create",
+    )
+        .with_request_id("31243")
+        .with_principal(principal)
+        .with_subject_property("isSuperUser", Value::from(true))
+        .with_subject_kind("role-actor")
+        .with_subject_source("keycloak")
+        .with_resource_id("e3a786fd07e24bfa95ba4341d3695ae8")
+        .with_resource_property("isEnabled", json!(true))
+        .with_entities_map("cedar", entities)
+        .with_action_property("isEnabled", json!(true))
+        .with_context_property("isSubscriptionActive", json!(true))
+        .with_context_property("time", json!("2025-01-23T16:17:46+00:00"))
+        .build();
+
+    match client.check_auth(Some(request)).await {
+        Ok(response) => {
+            if response.decision {
+                println!("✅ Authorization Permitted");
+            } else {
+                println!("❌ Authorization Denied");
+                if let Some(ctx) = response.context {
+                    if let Some(admin) = ctx.reason_admin {
+                        println!("-> Reason Admin: {}", admin.message);
+                    }
+                    if let Some(user) = ctx.reason_user {
+                        println!("-> Reason User: {}", user.message);
+                    }
+                }
+
+                for eval in response.evaluations {
+                    if eval.decision {
+                        println!("-> ✅ Authorization Permitted");
+                    }
+                    if let Some(ctx) = eval.context {
+                        if let Some(admin) = ctx.reason_admin {
+                            println!("-> Reason Admin: {}", admin.message);
+                        }
+                        if let Some(user) = ctx.reason_user {
+                            println!("-> Reason User: {}", user.message);
+                        }
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("❌ Failed to check auth: {}", e);
+            return Err(Err(e.into()));
+        }
+    }
+
+    Ok(Ok(()))
+}
+
+
+async fn json_test() -> Result<Result<(), Box<dyn Error>>, Result<(), Box<dyn Error>>>{
     let endpoint = AzEndpoint::new("http".to_string(), 9094, "localhost".to_string());
     let config = AzConfig::new().with_endpoint(Some(endpoint));
     let client = AzClient::new(config);
 
     let mut file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    file_path.push("../json/ok_onlyone.json");
+    file_path.push("./json/ok_onlyone.json");
 
     if !file_path.exists() {
         eprintln!("❌ Failed to load the JSON file");
@@ -164,7 +244,7 @@ async fn first_test() -> Result<Result<(), Box<dyn Error>>, Result<(), Box<dyn E
     let entities = vec![Some(entity)];
 
     // Create a new authorization request
-    let request = AzRequestBuilder::new(595307436770, "b1be7dc2fd944c548ac2c66dddd0c61d".to_string())
+    let request = AzRequestBuilder::new(189106194833, "48335ae72b3b405eae9e4bd5b07732df".to_string())
         .with_request_id(Some("7567".to_string()))
         .with_subject(Some(subject))
         .with_principal(Some(principal))
