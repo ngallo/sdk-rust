@@ -24,22 +24,17 @@ on:
 permissions:
   contents: read
 
-env:
-  CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_TOKEN }}
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
     - name: Set up Rust
-      uses: actions/setup-rust@v1
+      uses: dtolnay/rust-toolchain@stable
       with:
-        rust-version: stable
+        toolchain: stable
 
     - name: Extract Version from Tag
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
@@ -55,4 +50,6 @@ jobs:
       run: cargo build --release
 
     - name: Publish to crates.io
-      run: cargo publish --token $CARGO_REGISTRY_TOKEN
+      run: cargo publish --token ${{ secrets.CRATES_TOKEN }}
+      env:
+        CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
