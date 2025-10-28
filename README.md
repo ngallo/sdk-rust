@@ -22,7 +22,7 @@ Plase refer to the [Permguard Documentation](https://www.permguard.com/) for mor
 
 ## Installation
 
-Add permguard-sdk dependency in your cargo.toml file
+Add permguard dependency in your cargo.toml file
 ```
 
 ---
