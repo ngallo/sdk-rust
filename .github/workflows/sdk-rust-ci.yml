@@ -36,6 +36,14 @@ jobs:
       with:
         toolchain: stable
 
+    - name: Install protoc
+      uses: arduino/setup-protoc@v3
+      with:
+        version: "latest"
+
+    - name: Verify protoc
+      run: protoc --version
+
     - name: Extract Version from Tag
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
