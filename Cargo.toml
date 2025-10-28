@@ -1,13 +1,13 @@
 [package]
-name = "permguard-sdk"
-version = "1.0.4"
+name = "permguard"
+version = "0.0.0"
 edition = "2024"
-keywords = ["permguard", "auth"]
+keywords = ["permguard", "authz"]
 categories = ["development-tools"]
 homepage = "https://www.permguard.com"
 license = "Apache-2.0"
 repository = "https://github.com/permguard/sdk-rust"
-description = "Permguard SDK for Rust"
+description = "The official Rust SDK for Permguard"
 
 [lib]
 name = "permguard"
