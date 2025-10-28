@@ -1,8 +1,8 @@
 [package]
 name = "permguard-sdk"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
-keywords = ["permguarg", "auth"]
+keywords = ["permguard", "auth"]
 categories = ["development-tools"]
 homepage = "https://www.permguard.com"
 license = "Apache-2.0"
