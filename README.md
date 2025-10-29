@@ -37,91 +37,68 @@ cargo add permguard
 Below is a sample Rust code demonstrating how to create a Permguard client, build an authorization request using a builder pattern, and process the authorization response:
 
 ```rust
-async fn first_test() -> Result<Result<(), Box<dyn Error>>, Result<(), Box<dyn Error>>> {
-    let endpoint = AzEndpoint::new("http".to_string(), 9094, "localhost".to_string());
-    let config = AzConfig::new().with_endpoint(Some(endpoint));
-    let client = AzClient::new(config);
+let endpoint = AzEndpoint::new("http".to_string(), 9094, "localhost".to_string());
+let config = AzConfig::new().with_endpoint(Some(endpoint));
+let client = AzClient::new(config);
 
-    // Create the Principal
-    let principal = PrincipalBuilder::new("amy.smith@acmecorp.com".to_string())
-        .with_source("keycloak".to_string())
-        .with_kind("user".to_string())
-        .build();
+let principal = PrincipalBuilder::new("amy.smith@acmecorp.com")
+    .with_source("keycloak")
+    .with_kind("user")
+    .build();
 
-    // Create a new subject
-    let subject = SubjectBuilder::new("platform-creator".to_string())
-        .with_source("keycloak".to_string())
-        .with_kind("role-actor".to_string())
-        .with_property("isSuperUser".to_string(), serde_json::json!(true))
-        .build();
+let entity = {
+    let mut map = HashMap::new();
+    map.insert("uid".to_string(), json!({
+        "type": "MagicFarmacia::Platform::BranchInfo",
+        "id": "subscription"
+    }));
+    map.insert("attrs".to_string(), json!({"active": true}));
+    map.insert("parents".to_string(), json!([]));
+    Some(map)
+};
 
-    // Create a new resource
-    let resource = ResourceBuilder::new("MagicFarmacia::Platform::Subscription".to_string())
-        .with_id("e3a786fd07e24bfa95ba4341d3695ae8".to_string())
-        .with_property("isEnabled".to_string(), serde_json::json!(true))
-        .build();
+let entities = vec![entity];
 
-    // Create actions
-    let action_view = ActionBuilder::new("MagicFarmacia::Platform::Action::create".to_string())
-        .with_property("isEnabled".to_string(), serde_json::json!(true))
-        .build();
+let request = AzAtomicRequestBuilder::new(
+    189106194833,
+    "48335ae72b3b405eae9e4bd5b07732df",
+    "platform-creator",
+    "MagicFarmacia::Platform::Subscription",
+    "MagicFarmacia::Platform::Action::create",
+)
+    .with_request_id("31243")
+    .with_principal(principal)
+    .with_subject_property("isSuperUser", Value::from(true))
+    .with_subject_kind("role-actor")
+    .with_subject_source("keycloak")
+    .with_resource_id("e3a786fd07e24bfa95ba4341d3695ae8")
+    .with_resource_property("isEnabled", json!(true))
+    .with_entities_map("cedar", entities)
+    .with_action_property("isEnabled", json!(true))
+    .with_context_property("isSubscriptionActive", json!(true))
+    .with_context_property("time", json!("2025-01-23T16:17:46+00:00"))
+    .build();
 
-    let action_create = ActionBuilder::new("MagicFarmacia::Platform::Action::create".to_string())
-        .with_property("isEnabled".to_string(), serde_json::json!(false))
-        .build();
+match client.check_auth(Some(request)).await {
+    Ok(response) => {
+        if response.decision {
+            println!("✅ Authorization Permitted");
+        } else {
+            println!("❌ Authorization Denied");
+            if let Some(ctx) = response.context {
+                if let Some(admin) = ctx.reason_admin {
+                    println!("-> Reason Admin: {}", admin.message);
+                }
+                if let Some(user) = ctx.reason_user {
+                    println!("-> Reason User: {}", user.message);
+                }
+            }
 
-    // Create a new Context
-    let context = ContextBuilder::new()
-        .with_property("time".to_string(), serde_json::json!("2025-01-23T16:17:46+00:00"))
-        .with_property("isSubscriptionActive".to_string(), serde_json::json!(true))
-        .build();
-
-    // Create evaluations
-    let evaluation_view = EvaluationBuilder::new(Some(subject.clone()), Some(resource.clone()), Some(action_view.clone()))
-        .with_request_id("134".to_string())
-        .build();
-
-    let evaluation_create = EvaluationBuilder::new(Some(subject.clone()), Some(resource.clone()), Some(action_create.clone()))
-        .with_request_id("435".to_string())
-        .build();
-
-    // Create the entities
-    let mut entity = HashMap::new();
-    entity.insert(
-        "uid".to_string(),
-        serde_json::json!({
-            "type": "MagicFarmacia::Platform::BranchInfo",
-            "id": "subscription"
-        }),
-    );
-    entity.insert(
-        "attrs".to_string(),
-        serde_json::json!({
-            "active": true
-        }),
-    );
-    entity.insert("parents".to_string(), serde_json::json!([]));
-
-    let entities = vec![Some(entity)];
-
-    // Create a new authorization request
-    let request = AzRequestBuilder::new(595307436770, "b1be7dc2fd944c548ac2c66dddd0c61d".to_string())
-        .with_request_id(Some("7567".to_string()))
-        .with_subject(Some(subject))
-        .with_principal(Some(principal))
-        .with_entities_map("cedar".to_string(), entities)
-        .with_context(Some(context))
-        .with_evaluation(evaluation_view)
-        .with_evaluation(evaluation_create)
-        .build();
-
-    match client.check_auth(Some(request)).await {
-        Ok(response) => {
-            if response.decision {
-                println!("✅ Authorization Permitted");
-            } else {
-                println!("❌ Authorization Denied");
-                if let Some(ctx) = response.context {
+            for eval in response.evaluations {
+                if eval.decision {
+                    println!("-> ✅ Authorization Permitted");
+                }
+                if let Some(ctx) = eval.context {
                     if let Some(admin) = ctx.reason_admin {
                         println!("-> Reason Admin: {}", admin.message);
                     }
@@ -129,30 +106,16 @@ async fn first_test() -> Result<Result<(), Box<dyn Error>>, Result<(), Box<dyn E
                         println!("-> Reason User: {}", user.message);
                     }
                 }
-
-                for eval in response.evaluations {
-                    if eval.decision {
-                        println!("-> ✅ Authorization Permitted");
-                    }
-                    if let Some(ctx) = eval.context {
-                        if let Some(admin) = ctx.reason_admin {
-                            println!("-> Reason Admin: {}", admin.message);
-                        }
-                        if let Some(user) = ctx.reason_user {
-                            println!("-> Reason User: {}", user.message);
-                        }
-                    }
-                }
             }
         }
-        Err(e) => {
-            eprintln!("❌ Failed to check auth: {}", e);
-            return Err(Err(e.into()));
-        }
     }
-
-    Ok(Ok(()))
+    Err(e) => {
+        eprintln!("❌ Failed to check auth: {}", e);
+        return Err(Err(e.into()));
+    }
 }
+
+Ok(Ok(()))
 ```
 
 ---
