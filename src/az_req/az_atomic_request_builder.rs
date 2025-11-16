@@ -95,7 +95,7 @@ impl AzAtomicRequestBuilder {
     }
 
     /// Sets the subject kind.
-    pub fn with_subject_kind(mut self, kind: impl Into<String>) -> Self {
+    pub fn with_subject_type(mut self, kind: impl Into<String>) -> Self {
         self.az_subject_builder = self.az_subject_builder.with_type(kind);
         self
     }
