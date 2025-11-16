@@ -49,7 +49,7 @@ let principal = PrincipalBuilder::new("amy.smith@acmecorp.com")
 let entity = {
     let mut map = HashMap::new();
     map.insert("uid".to_string(), json!({
-        "type": "ZTMedFlow::Platform::BranchInfo",
+        "type": "PharmaAuthZFlow::Platform::BranchInfo",
         "id": "subscription"
     }));
     map.insert("attrs".to_string(), json!({"active": true}));
@@ -63,8 +63,8 @@ let request = AzAtomicRequestBuilder::new(
     189106194833,
     "48335ae72b3b405eae9e4bd5b07732df",
     "platform-creator",
-    "ZTMedFlow::Platform::Subscription",
-    "ZTMedFlow::Platform::Action::create",
+    "PharmaAuthZFlow::Platform::Subscription",
+    "PharmaAuthZFlow::Platform::Action::create",
 )
     .with_request_id("31243")
     .with_principal(principal)
