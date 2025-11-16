@@ -43,7 +43,7 @@ let client = AzClient::new(config);
 
 let principal = PrincipalBuilder::new("amy.smith@acmecorp.com")
     .with_source("keycloak")
-    .with_kind("user")
+    .with_type("user")
     .build();
 
 let entity = {

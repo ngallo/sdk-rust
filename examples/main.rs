@@ -36,7 +36,7 @@ async fn atomic_test() -> Result<Result<(), Box<dyn Error>>, Result<(), Box<dyn 
 
     let principal = PrincipalBuilder::new("amy.smith@acmecorp.com")
         .with_source("keycloak")
-        .with_kind("user")
+        .with_type("user")
         .build();
 
     let entity = {
@@ -184,13 +184,13 @@ async fn first_test() -> Result<Result<(), Box<dyn Error>>, Result<(), Box<dyn E
     // Create the Principal
     let principal = PrincipalBuilder::new("amy.smith@acmecorp.com".to_string())
         .with_source("keycloak".to_string())
-        .with_kind("user".to_string())
+        .with_type("user".to_string())
         .build();
 
     // Create a new subject
     let subject = SubjectBuilder::new("platform-creator".to_string())
         .with_source("keycloak".to_string())
-        .with_kind("workload".to_string())
+        .with_type("workload".to_string())
         .with_property("isSuperUser".to_string(), serde_json::json!(true))
         .build();
 

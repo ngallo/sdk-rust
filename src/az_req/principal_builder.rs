@@ -39,8 +39,8 @@ impl PrincipalBuilder {
         }
     }
 
-    /// Sets the kind/type of the principal.
-    pub fn with_kind(mut self, kind: impl Into<String>) -> Self {
+    /// Sets the type of the principal.
+    pub fn with_type(mut self, kind: impl Into<String>) -> Self {
         self.principal_type = kind.into();
         self
     }

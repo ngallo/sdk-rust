@@ -43,8 +43,8 @@ impl SubjectBuilder {
         }
     }
 
-    /// Sets the kind/type of the subject.
-    pub fn with_kind(mut self, kind: impl Into<String>) -> Self {
+    /// Sets the type of the subject.
+    pub fn with_type(mut self, kind: impl Into<String>) -> Self {
         self.subject_type = kind.into();
         self
     }
