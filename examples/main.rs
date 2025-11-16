@@ -42,7 +42,7 @@ async fn atomic_test() -> Result<Result<(), Box<dyn Error>>, Result<(), Box<dyn 
     let entity = {
         let mut map = HashMap::new();
         map.insert("uid".to_string(), json!({
-            "type": "MagicFarmacia::Platform::BranchInfo",
+            "type": "ZTMedFlow::Platform::BranchInfo",
             "id": "subscription"
         }));
         map.insert("attrs".to_string(), json!({"active": true}));
@@ -56,8 +56,8 @@ async fn atomic_test() -> Result<Result<(), Box<dyn Error>>, Result<(), Box<dyn 
         189106194833,
         "48335ae72b3b405eae9e4bd5b07732df",
         "platform-creator",
-        "MagicFarmacia::Platform::Subscription",
-        "MagicFarmacia::Platform::Action::create",
+        "ZTMedFlow::Platform::Subscription",
+        "ZTMedFlow::Platform::Action::create",
     )
         .with_request_id("31243")
         .with_principal(principal)
@@ -195,17 +195,17 @@ async fn first_test() -> Result<Result<(), Box<dyn Error>>, Result<(), Box<dyn E
         .build();
 
     // Create a new resource
-    let resource = ResourceBuilder::new("MagicFarmacia::Platform::Subscription".to_string())
+    let resource = ResourceBuilder::new("ZTMedFlow::Platform::Subscription".to_string())
         .with_id("e3a786fd07e24bfa95ba4341d3695ae8".to_string())
         .with_property("isEnabled".to_string(), serde_json::json!(true))
         .build();
 
     // Create actions
-    let action_view = ActionBuilder::new("MagicFarmacia::Platform::Action::create".to_string())
+    let action_view = ActionBuilder::new("ZTMedFlow::Platform::Action::create".to_string())
         .with_property("isEnabled".to_string(), serde_json::json!(true))
         .build();
 
-    let action_create = ActionBuilder::new("MagicFarmacia::Platform::Action::create".to_string())
+    let action_create = ActionBuilder::new("ZTMedFlow::Platform::Action::create".to_string())
         .with_property("isEnabled".to_string(), serde_json::json!(false))
         .build();
 
@@ -229,7 +229,7 @@ async fn first_test() -> Result<Result<(), Box<dyn Error>>, Result<(), Box<dyn E
     entity.insert(
         "uid".to_string(),
         serde_json::json!({
-            "type": "MagicFarmacia::Platform::BranchInfo",
+            "type": "ZTMedFlow::Platform::BranchInfo",
             "id": "subscription"
         }),
     );
